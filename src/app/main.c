@@ -2,18 +2,46 @@
 #include "blinky.h"
 #include "bsp.h"
 #include "elog.h"
+#include "tcp_server.h"
+#include "tcp_client.h"
+#include "udp_server.h"
 
 int main(int argc, char **argv){
     extern void elog_config(void);
-    extern int creat_tcp_server(void);
     elog_config();
-    log_a("elog_a print!\n");
-    log_e("elog_e print!\n");
-    log_w("elog_w print!\n");
-    log_i("elog_i print!\n");
-    log_d("elog_d print!\n");
-    log_v("elog_v print!\n");
-    creat_tcp_server();
+    struct tcp_sv_t sv_me1;
+    struct tcp_sv_t sv_me2;
+    struct tcp_clt_t clt_me1;
+    struct tcp_clt_t clt_me2;
+    struct udp_sv_t udp_me1;
+
+    sv_me1.max_fd = 20;
+    sv_me1.max_listen = 20;
+    sv_me1.port = 8889;
+    sv_me1.call_back = NULL;
+    tcp_server_init(&sv_me1);
+    sv_me2.port = 8887;
+    sv_me2.max_fd = 21;
+    sv_me2.max_listen = 21;
+    sv_me2.call_back = NULL;
+    tcp_server_init(&sv_me2);
+
+    clt_me1.ipaddr = "192.168.180.1";
+    clt_me1.port = 8885;
+    clt_me1.call_back = NULL;
+    tcp_client_init(&clt_me1);
+
+    clt_me2.port = 8884;
+    clt_me2.ipaddr = "192.168.180.1";
+    clt_me2.call_back = NULL;
+    tcp_client_init(&clt_me2);
+
+    udp_me1.call_back = NULL;
+    udp_me1.ipaddr = "192.168.180.1";
+    udp_me1.mode = 0;
+    udp_me1.port = 8888;
+    udp_sv_init(&udp_me1);
+
     static QEvt const *l_blinkyQSto[10]; /* Event queue storage for Blinky */
 
         QF_init();  /* initialize the framework and the underlying RT kernel */
