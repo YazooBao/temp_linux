@@ -9,15 +9,19 @@
 
 int main(int argc, char **argv){
     extern void elog_config(void);
+    extern void pr_config(char *path);
 
     int svn_ver = 0;
     svn_ver = SVN_VERSION;
     elog_config();
 
-    elog_i("info", PRJ_NAME);
-    elog_i("info", BUILD_TIME);
-    elog_i("info", BUILD_VERSION);
-    elog_i("info","SVN version : %ld", SVN_VERSION);
+    // elog_i("info", PRJ_NAME);
+    // elog_i("info", BUILD_TIME);
+    // elog_i("info", BUILD_VERSION);
+    // elog_i("info","SVN version : %ld", SVN_VERSION);
+
+    pr_config("./call.xml");
+    // pr_config("./bao.xml");
 
     struct tcp_sv_t sv_me1;
     struct tcp_sv_t sv_me2;

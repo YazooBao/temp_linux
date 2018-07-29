@@ -1,0 +1,4 @@
+obj-y +=  \
+	port/ \
+	src/
+
