@@ -52,12 +52,12 @@ static struct termios l_tsav; /* structure with saved terminal attributes */
 
 /*..........................................................................*/
 void QF_onStartup(void) {     /* startup callback */
-    // struct termios tio;       /* modified terminal attributes */
+    struct termios tio;       /* modified terminal attributes */
 
-    // tcgetattr(0, &l_tsav);    /* save the current terminal attributes */
-    // tcgetattr(0, &tio);       /* obtain the current terminal attributes */
-    // tio.c_lflag &= ~(ICANON | ECHO); /* disable the canonical mode & echo */
-    // tcsetattr(0, TCSANOW, &tio);  /* set the new attributes */
+    tcgetattr(0, &l_tsav);    /* save the current terminal attributes */
+    tcgetattr(0, &tio);       /* obtain the current terminal attributes */
+    tio.c_lflag &= ~(ICANON | ECHO); /* disable the canonical mode & echo */
+    tcsetattr(0, TCSANOW, &tio);  /* set the new attributes */
 
     QF_setTickRate(BSP_TICKS_PER_SEC); /* set the desired tick rate */
 }

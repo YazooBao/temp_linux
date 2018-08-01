@@ -34,8 +34,8 @@
 #include "qpc.h"
 #include "blinky.h"
 #include "bsp.h"
-
-//Q_DEFINE_THIS_FILE
+#include "elog.h"
+Q_DEFINE_THIS_FILE
 
 /*..........................................................................*/
 typedef struct {     /* the Blinky active object */
@@ -85,6 +85,7 @@ QState Blinky_off(Blinky * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             BSP_ledOff();
+            elog_d("debug", "led off");
             status = Q_HANDLED();
             break;
         }
@@ -105,6 +106,7 @@ QState Blinky_on(Blinky * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             BSP_ledOn();
+            elog_d("debug", "led on");
             status = Q_HANDLED();
             break;
         }

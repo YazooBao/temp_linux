@@ -59,7 +59,8 @@ APP_SRC := \
 	tcp_server.c \
 	tcp_client.c \
 	udp_server.c \
-	config.c
+	config.c \
+	call_sock.c
 
 ifeq (rel, $(CONF))  # Release configuration .................................
 

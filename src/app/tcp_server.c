@@ -38,7 +38,6 @@ static int on_tcp_server(void *p);
  * \param 接收的数据个数
  */;
 int tcp_server_init(struct tcp_sv_t *me){
-    elog_d("debug", "port = %d, max_fd = %d, max_listen = %d\n", me->port, me->max_fd, me->max_listen);
     return creat_tcp_server(me);
 }
 
@@ -58,9 +57,10 @@ static int on_tcp_server(void *p)
     int err;
     int i;
     int connfd;
-    struct tcp_sv_t *me = (struct tcp_sv_t *)p;
-    int fd_all[me->max_fd];    //保存所有描述符，用于select调用后判断哪个可读
-    elog_d("debug", "port = %d, max_fd = %d, max_listen = %d\n", me->port, me->max_fd, me->max_listen);
+    static struct tcp_sv_t me;// = (struct tcp_sv_t *)p;
+    memcpy(&me, (struct tcp_sv_t *)p, sizeof(me));
+    int fd_all[me.max_fd];    //保存所有描述符，用于select调用后判断哪个可读
+    elog_d("debug", "port = %d, max_fd = %d, max_listen = %d\n", me.port, me.max_fd, me.max_listen);
 
     //下面两个备份原因是select调用后，会发生变化，再次调用select前会重新赋值
     fd_set fd_read; //FD_SET数据备份
@@ -98,7 +98,7 @@ static int on_tcp_server(void *p)
     //配置本地地址
     memset(&serv_addr, 0,sizeof(serv_addr));
     serv_addr.sin_family = AF_INET; //ip_v4
-    serv_addr.sin_port = htons(me->port);//端口
+    serv_addr.sin_port = htons(me.port);//端口
     serv_addr.sin_addr.s_addr=htonl(INADDR_ANY);//ip
 
     serv_len = sizeof(serv_addr);
@@ -114,7 +114,7 @@ static int on_tcp_server(void *p)
     }
 
     //监听
-    err = listen(sockfd, me->max_listen);
+    err = listen(sockfd, me.max_listen);
     if(err<0){
         perror("fail to listen!\n");
         exit(1);
@@ -171,7 +171,7 @@ static int on_tcp_server(void *p)
             elog_i("info","client ip=%s,port=%d\n", cli_ip,ntohs(cli_addr.sin_port));
 
             // 将新连接套接字加入 fd_all 及 fd_read
-            for(i=0; i < me->max_fd; i++){
+            for(i=0; i < me.max_fd; i++){
                 if(fd_all[i] != -1){
                     continue;
                 }else{
@@ -199,11 +199,11 @@ static int on_tcp_server(void *p)
                 int num        = read(fd_all[i], buf, 1024);
                 if(num > 0){
                     //TODO:处理客户端数据
-                    if(me->call_back == NULL){
+                    if(me.call_back == NULL){
                         elog_i("info", "server call back is null!\n");
                     }
                     else{
-                        me->call_back(fd_all[i], buf, num);
+                        me.call_back(fd_all[i], buf, num);
                     }
                 }else if(0 == num){ // 客户端断开时
 
