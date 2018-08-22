@@ -10,6 +10,8 @@ VPATH = \
 QP_DIR := ./src/componets/qp/qpc
 XML_DIR := ./src/componets/xmllib/mxml-2.11
 ESYLG_DIR := ./src/componets/EasyLogger
+EV_DIR := ./src/componets/libev-4.15
+EVENT_DIR := ./src/componets/libevent-2.1.8-stable
 
 # list of all include directories needed by this project
 INCLUDES  = \
@@ -19,7 +21,13 @@ INCLUDES  = \
 	-I$(QP_DIR)/ports/posix \
 	-I./src/app \
 	-I$(ESYLG_DIR)/easylogger/inc \
-	-I$(XML_DIR)
+	-I$(XML_DIR) \
+	-I$(EVENT_DIR) \
+	-I$(EVENT_DIR)/include \
+	-I$(EVENT_DIR)/include/event2
+	
+	
+
 
 #lib
 #ARM_SHARED_LIB = -lm -ldl -lpthread -lsqlite3 -liconv 
@@ -36,19 +44,22 @@ else
 	ARM_STATIC_LIB =
 endif
 
-LIBVAR = -lqp -lmxml -leasylogger
+LIBVAR = -lqp -lmxml -leasylogger -levent_core #levent_extra lenvent_pthreads levent  -lev
 
 ifeq (rel, $(CONF))
 
 LIB_PATH += -L$(QP_DIR)/ports/posix/rel
-LIB_PATH += -L$(XML_DIR)/rel
+LIB_PATH += -L$(XML_DIR)
 LIB_PATH += -L$(ESYLG_DIR)/rel
-
+# LIB_PATH += -L$(EV_DIR)/.libs
+LIB_PATH += -L$(EVENT_DIR)/.libs
 else
 
 LIB_PATH += -L$(QP_DIR)/ports/posix/dbg
-LIB_PATH += -L$(XML_DIR)/dbg
+LIB_PATH += -L$(XML_DIR)
 LIB_PATH += -L$(ESYLG_DIR)/dbg
+# LIB_PATH += -L$(EV_DIR)/.libs
+LIB_PATH += -L$(EVENT_DIR)/.libs
 
 endif
 
@@ -60,8 +71,12 @@ APP_SRC := \
 	tcp_client.c \
 	udp_server.c \
 	config.c \
-	call_sock.c
+	call_sock.c \
+	qp_task.c\
+	event_tcp_server.c
 
+	# ev_task.c
+	# ev_tcp_server.c 
 ifeq (rel, $(CONF))  # Release configuration .................................
 
 BIN_DIR := rel
@@ -99,17 +114,14 @@ version :
 
 lib:
 ifeq (rel, $(CONF))
-	(cd $(XML_DIR); make CONF=rel)
 	(cd $(QP_DIR)/ports/posix; make CONF=rel)
 	(cd $(ESYLG_DIR); make CONF=rel)
 else
-	(cd $(XML_DIR); make)
 	(cd $(QP_DIR)/ports/posix; make)
 	(cd $(ESYLG_DIR); make)
 endif
 
 clean:
-	(cd $(XML_DIR); make clean)
 	(cd $(QP_DIR)/ports/posix; make clean)
 	(cd $(ESYLG_DIR); make clean)
 	rm -rf $(OBJ) $(TARGET) version.h

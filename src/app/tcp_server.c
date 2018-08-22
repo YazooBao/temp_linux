@@ -21,10 +21,16 @@
 #include "tcp_server.h"
 #include "elog.h"
 /*typedef--------------------------------------------------------------------------*/
+struct cli_attr_t{
+    int fd;
+    char ip[INET_ADDRSTRLEN];
+    int port;
+};
 /*define---------------------------------------------------------------------------*/
 /*macro----------------------------------------------------------------------------*/
 #define SELECT_MODE 1
 /*variables------------------------------------------------------------------------*/
+static struct cli_attr_t cli_attr[100];
 /*function prototype---------------------------------------------------------------*/
 /*variables------------------------------------------------------------------------*/
 static int creat_tcp_server(void *p);
@@ -38,6 +44,11 @@ static int on_tcp_server(void *p);
  * \param 接收的数据个数
  */;
 int tcp_server_init(struct tcp_sv_t *me){
+    int i = 0;
+    for(i = 0; i<sizeof(cli_attr)/sizeof(cli_attr[0]);i++){
+        cli_attr[i].fd = -1;
+        cli_attr[i].port = -1;
+    }
     return creat_tcp_server(me);
 }
 
@@ -57,7 +68,7 @@ static int on_tcp_server(void *p)
     int err;
     int i;
     int connfd;
-    static struct tcp_sv_t me;// = (struct tcp_sv_t *)p;
+    struct tcp_sv_t me;// = (struct tcp_sv_t *)p;
     memcpy(&me, (struct tcp_sv_t *)p, sizeof(me));
     int fd_all[me.max_fd];    //保存所有描述符，用于select调用后判断哪个可读
     elog_d("debug", "port = %d, max_fd = %d, max_listen = %d\n", me.port, me.max_fd, me.max_listen);
@@ -76,7 +87,7 @@ static int on_tcp_server(void *p)
     socklen_t cli_len;
 
     //超时时间设置
-    timeout.tv_sec = 10;
+    timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
     //创建TCP套接字
@@ -103,6 +114,8 @@ static int on_tcp_server(void *p)
 
     serv_len = sizeof(serv_addr);
 
+// int b_on = 1;
+// ioctl (sockfd, FIONBIO, &b_on);
     //绑定
     err = bind(sockfd, (struct sockaddr * )&serv_addr, serv_len);
     if(err<0){
@@ -169,7 +182,9 @@ static int on_tcp_server(void *p)
             inet_ntop(AF_INET, &cli_addr.sin_addr, cli_ip, INET_ADDRSTRLEN);
             elog_i("info","----------------------------------------------\n");
             elog_i("info","client ip=%s,port=%d\n", cli_ip,ntohs(cli_addr.sin_port));
-
+            cli_attr[i].fd = connfd;
+            memcpy(cli_attr[i].ip, cli_ip, INET_ADDRSTRLEN);
+            cli_attr[i].port = ntohs(cli_addr.sin_port);
             // 将新连接套接字加入 fd_all 及 fd_read
             for(i=0; i < me.max_fd; i++){
                 if(fd_all[i] != -1){
@@ -212,6 +227,7 @@ static int on_tcp_server(void *p)
                     FD_CLR(fd_all[i], &fd_read);
                     close(fd_all[i]);
                     fd_all[i] = -1;
+                    cli_attr[i].fd = -1;
                     continue;
                 }
             }else {
@@ -343,6 +359,7 @@ static int creat_tcp_server(void *p)
         elog_i("info", "creat tcp server thread error!err=%d",err);
     }
     elog_i("info", "tcp server thread success!thread id=%lu\n", thread_id);
+
     return err;
 }
 

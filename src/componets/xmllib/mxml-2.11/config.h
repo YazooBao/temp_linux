@@ -76,7 +76,7 @@
 
 #define HAVE_PTHREAD_H 1
 
-// #define DEBUG   2
+
 /*
  * Define prototypes for string functions as needed...
  */

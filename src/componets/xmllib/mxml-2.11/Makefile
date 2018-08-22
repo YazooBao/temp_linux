@@ -1,143 +1,419 @@
-##############################################################################
-# examples of invoking this Makefile:
-# building configurations: Debug (default), Release and Spy
-# make
-# make CONF=rel
-# make CONF=spy
 #
-# cleaning configurations: Debug (default), Release, and Spy
-# make clean
-# make CONF=rel clean
-# make CONF=spy clean
+# Makefile for Mini-XML, a small XML-like file parsing library.
 #
-include ../../../../config.mk
-#-----------------------------------------------------------------------------
-# project name
+# Copyright 2003-2017 by Michael R Sweet.
 #
-PROJECT     := mxml
-
-#-----------------------------------------------------------------------------
-# project directories
+# These coded instructions, statements, and computer programs are the
+# property of Michael R Sweet and are protected by Federal copyright
+# law.  Distribution and use rights are outlined in the file "COPYING"
+# which should have been included with this file.  If this file is
+# missing or damaged, see the license at:
+#
+#     https://michaelrsweet.github.io/mxml
 #
 
-# location of the QP/C framework
-MXML:= .
-
-# list of all source directories used by this project
-VPATH = \
-	$(MXML)
-
-# list of all include directories needed by this project
-INCLUDES  = \
-	-I$(MXML)
-
-#-----------------------------------------------------------------------------
-# files
+#
+# Compiler tools definitions...
 #
 
-# C source files
-C_SRCS := \
-	mmd.c \
-	mxml-attr.c \
-	mxml-entity.c \
-	mxml-file.c \
-	mxml-get.c \
-	mxml-index.c \
-	mxml-node.c \
-	mxml-private.c \
-	mxml-search.c \
-	mxml-set.c \
-	mxml-string.c
+AR		=	ar
+ARFLAGS		=	crvs
+ARCHFLAGS	=	
+CC		=	gcc
+CFLAGS		=	$(OPTIM) $(ARCHFLAGS) -Wall -D_GNU_SOURCE   -D_THREAD_SAFE -D_REENTRANT
+CP		=	/bin/cp
+DSO		=	$(CC)
+DSOFLAGS	=	 -Wl,-soname,libmxml.so.1,-rpath,$(libdir) -shared $(OPTIM)
+LDFLAGS		=	$(OPTIM) $(ARCHFLAGS)  -Wl,-rpath,$(libdir)
+INSTALL		=	/usr/bin/install -c
+LIBMXML		=	libmxml.so.1.6
+LIBS		=	 -lpthread
+LN		=	/bin/ln -s
+MKDIR		=	/bin/mkdir
+OPTIM		=	-fPIC -Os -g
+RANLIB		=	ranlib
+RM		=	/bin/rm -f
+SHELL		=	/bin/sh
 
-# C++ source files
-CPP_SRCS :=
 
-# defines
-DEFINES  :=
-
-#-----------------------------------------------------------------------------
-# build options for various configurations
+#
+# Configured directories...
 #
 
-LIBFLAGS := rs
-
-ifeq (rel, $(CONF))  # Release configuration .................................
-
-BIN_DIR := rel
-
-CFLAGS = -c -ffunction-sections -fdata-sections \
-	-Os -Wall -W $(INCLUDES) $(DEFINES) -pthread -DNDEBUG
-
-else  # default Debug configuration ..........................................
-
-BIN_DIR := dbg
-
-CFLAGS = -c -g -ffunction-sections -fdata-sections \
-	-O -Wall -W $(INCLUDES) $(DEFINES) -pthread
-
-endif  # .....................................................................
+prefix		=	/usr/local
+exec_prefix	=	/usr/local
+bindir		=	${exec_prefix}/bin
+datarootdir	=	${prefix}/share
+includedir	=	${prefix}/include
+libdir		=	${exec_prefix}/lib
+mandir		=	${datarootdir}/man
+docdir		=	${datarootdir}/doc/mxml
+BUILDROOT	=	$(DSTROOT)
 
 
-C_OBJS       := $(patsubst %.c,   %.o, $(C_SRCS))
-CPP_OBJS     := $(patsubst %.cpp, %.o, $(CPP_SRCS))
-
-TARGET_LIB   := $(BIN_DIR)/lib$(PROJECT).a
-C_OBJS_EXT   := $(addprefix $(BIN_DIR)/, $(C_OBJS))
-C_DEPS_EXT   := $(patsubst %.o, %.d, $(C_OBJS_EXT))
-CPP_OBJS_EXT := $(addprefix $(BIN_DIR)/, $(CPP_OBJS))
-CPP_DEPS_EXT := $(patsubst %.o, %.d, $(CPP_OBJS_EXT))
-
-# create $(BIN_DIR) if it does not exist
-ifeq ("$(wildcard $(BIN_DIR))","")
-$(shell $(MKDIR) $(BIN_DIR))
-endif
-
-#-----------------------------------------------------------------------------
-# rules
+#
+# Install commands...
 #
 
-all: $(TARGET_LIB)
-	-$(RM) $(BIN_DIR)/*.o $(BIN_DIR)/*.d
+INSTALL_BIN	=	$(LIBTOOL) $(INSTALL) -m 755
+INSTALL_DATA	=	$(INSTALL) -m 644
+INSTALL_DIR	=	$(INSTALL) -d
+INSTALL_LIB	=	$(LIBTOOL) $(INSTALL) -m 755
+INSTALL_MAN	=	$(INSTALL) -m 644
+INSTALL_SCRIPT	=	$(INSTALL) -m 755
 
-$(TARGET_LIB) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(LIB) $(LIBFLAGS) $@ $^
 
-$(BIN_DIR)/%.d : %.c
-	$(CC) -MM -MT $(@:.d=.o) $(CFLAGS) $< > $@
-
-$(BIN_DIR)/%.d : %.cpp
-	$(CPP) -MM -MT $(@:.d=.o) $(CPPFLAGS) $< > $@
-
-$(BIN_DIR)/%.o : %.c
-	$(CC) $(CFLAGS) $< -o $@
-
-$(BIN_DIR)/%.o : %.cpp
-	$(CPP) $(CPPFLAGS) $< -o $@
-
-# include dependency files only if our goal depends on their existence
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),show)
--include $(C_DEPS_EXT) $(CPP_DEPS_EXT)
-endif
-endif
-
-#-----------------------------------------------------------------------------
-# the clean target
 #
-.PHONY : clean
+# Rules...
+#
+
+.SILENT:
+.SUFFIXES:	.c .man .o
+.c.o:
+	echo Compiling $<
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+
+#
+# Targets...
+#
+
+DOCFILES	=	doc/mxml.html doc/mxmldoc.xsd README.md COPYING CHANGES.md
+PUBLIBOBJS	=	mxml-attr.o mxml-entity.o mxml-file.o mxml-get.o \
+			mxml-index.o mxml-node.o mxml-search.o mxml-set.o
+LIBOBJS		=	$(PUBLIBOBJS) mxml-private.o mxml-string.o
+OBJS		=	mmd.o mxmldoc.o testmxml.o zipc.o $(LIBOBJS)
+ALLTARGETS	=	$(LIBMXML) mxmldoc testmxml mxml.xml 
+CROSSTARGETS	=	$(LIBMXML) mxmldoc
+TARGETS		=	$(ALLTARGETS)
+
+
+#
+# Make everything...
+#
+
+all:		$(TARGETS)
+
+
+#
+# Clean everything...
+#
+
 clean:
-	-$(RM) $(BIN_DIR)/*.o 	$(BIN_DIR)/*.d $(TARGET_LIB)
+	echo Cleaning build files...
+	$(RM) $(OBJS) $(ALLTARGETS)
+	$(RM) mxmldoc-static
+	$(RM) mxml1.dll
+	$(RM) libmxml.a
+	$(RM) libmxml.so.1.6
+	$(RM) libmxml.sl.1
+	$(RM) libmxml.1.dylib
 
-#-----------------------------------------------------------------------------
-# the show target for debugging
+
 #
-show:
-	@echo PROJECT = $(PROJECT)
-	@echo CONF = $(CONF)
-	@echo TARGET_LIB = $(TARGET_LIB)
-	@echo C_SRCS = $(C_SRCS)
-	@echo CPP_SRCS = $(CPP_SRCS)
-	@echo C_OBJS_EXT = $(C_OBJS_EXT)
-	@echo C_DEPS_EXT = $(C_DEPS_EXT)
-	@echo CPP_OBJS_EXT = $(CPP_OBJS_EXT)
-	@echo CPP_DEPS_EXT = $(CPP_DEPS_EXT)
+# Really clean everything...
+#
+
+distclean:	clean
+	echo Cleaning distribution files...
+	$(RM) config.cache config.log config.status
+	$(RM) Makefile config.h
+	$(RM) -r autom4te*.cache
+	$(RM) *.bck *.bak
+	$(RM) -r clang
+
+
+#
+# Run the clang.llvm.org static code analysis tool on the C sources.
+#
+
+.PHONY: clang clang-changes
+clang:
+	echo Doing static code analysis of all code using CLANG...
+	$(RM) -r clang
+	scan-build -V -k -o `pwd`/clang $(MAKE) $(MFLAGS) clean all
+clang-changes:
+	echo Doing static code analysis of changed code using CLANG...
+	scan-build -V -k -o `pwd`/clang $(MAKE) $(MFLAGS) all
+
+
+#
+# Install everything...
+#
+
+install:	$(TARGETS) install-$(LIBMXML) install-libmxml.a
+	echo Installing mxmldoc in $(BUILDROOT)$(bindir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(bindir)
+	$(INSTALL_BIN) mxmldoc $(BUILDROOT)$(bindir)
+	echo Installing documentation in $(BUILDROOT)$(docdir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(docdir)
+	for file in $(DOCFILES); do \
+		$(INSTALL_MAN) $$file $(BUILDROOT)$(docdir)/`basename $$file .md`; \
+	done
+	echo Installing header files in $(BUILDROOT)$(includedir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(includedir)
+	$(INSTALL_DATA) mxml.h $(BUILDROOT)$(includedir)
+	echo Installing pkgconfig files in $(BUILDROOT)$(libdir)/pkgconfig...
+	$(INSTALL_DIR) $(BUILDROOT)$(libdir)/pkgconfig
+	$(INSTALL_DATA) mxml.pc $(BUILDROOT)$(libdir)/pkgconfig
+	echo Installing man pages in $(BUILDROOT)$(mandir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(mandir)/man1
+	$(INSTALL_MAN) doc/mxmldoc.man $(BUILDROOT)$(mandir)/man1/mxmldoc.1
+	$(INSTALL_DIR) $(BUILDROOT)$(mandir)/man3
+	$(INSTALL_MAN) doc/mxml.man $(BUILDROOT)$(mandir)/man3/mxml.3
+
+install-libmxml.a:
+	echo Installing libmxml.a to $(BUILDROOT)$(libdir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(libdir)
+	$(INSTALL_LIB) libmxml.a $(BUILDROOT)$(libdir)
+	$(RANLIB) $(BUILDROOT)$(libdir)/libmxml.a
+
+install-libmxml.so.1.6:
+	echo Installing libmxml.so to $(BUILDROOT)$(libdir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(libdir)
+	$(INSTALL_LIB) libmxml.so.1.6 $(BUILDROOT)$(libdir)
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.so
+	$(LN) libmxml.so.1.6 $(BUILDROOT)$(libdir)/libmxml.so
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.so.1
+	$(LN) libmxml.so.1.6 $(BUILDROOT)$(libdir)/libmxml.so.1
+
+install-libmxml.sl.1:
+	echo Installing libmxml.sl to $(BUILDROOT)$(libdir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(libdir)
+	$(INSTALL_LIB) libmxml.sl.1 $(BUILDROOT)$(libdir)
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.so
+	$(LN) libmxml.sl.1 $(BUILDROOT)$(libdir)/libmxml.sl
+
+install-libmxml.1.dylib:
+	echo Installing libmxml.dylib to $(BUILDROOT)$(libdir)...
+	$(INSTALL_DIR) $(BUILDROOT)$(libdir)
+	$(INSTALL_LIB) libmxml.1.dylib $(BUILDROOT)$(libdir)
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.dylib
+	$(LN) libmxml.1.dylib $(BUILDROOT)$(libdir)/libmxml.dylib
+
+
+#
+# Uninstall everything...
+#
+
+uninstall: uninstall-$(LIBMXML) uninstall-libmxml.a
+	echo Uninstalling mxmldoc from $(BUILDROOT)$(bindir)...
+	$(RM) $(BUILDROOT)$(bindir)/mxmldoc
+	echo Uninstalling documentation from $(BUILDROOT)$(docdir)...
+	$(RM) -r $(BUILDROOT)$(docdir)
+	echo Uninstalling headers from $(BUILDROOT)$(includedir)...
+	$(RM) $(BUILDROOT)$(includedir)/mxml.h
+	echo Uninstalling pkgconfig files from $(BUILDROOT)$(libdir)/pkgconfig...
+	$(RM) $(BUILDROOT)$(libdir)/pkgconfig/mxml.pc
+	echo Uninstalling man pages from $(BUILDROOT)$(mandir)...
+	$(RM) $(BUILDROOT)$(mandir)/man1/mxmldoc.1
+	$(RM) $(BUILDROOT)$(mandir)/man3/mxml.3
+
+uninstall-libmxml.a:
+	echo Uninstalling libmxml.a from $(BUILDROOT)$(libdir)...
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.a
+
+uninstall-libmxml.so.1.6:
+	echo Uninstalling libmxml.so from $(BUILDROOT)$(libdir)...
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.so
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.so.1
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.so.1.4
+
+uninstall-libmxml.sl.1:
+	echo Uninstalling libmxml.sl from $(BUILDROOT)$(libdir)...
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.sl
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.sl.1
+
+uninstall-libmxml.1.dylib:
+	echo Uninstalling libmxml.dylib from $(BUILDROOT)$(libdir)...
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.dylib
+	$(RM) $(BUILDROOT)$(libdir)/libmxml.1.dylib
+
+
+#
+# Figure out lines-of-code...
+#
+
+.PHONY: sloc
+
+sloc:
+	echo "libmxml: \c"
+	sloccount $(LIBOBJS:.o=.c) mxml-private.c mxml.h 2>/dev/null | \
+		grep "Total Physical" | awk '{print $$9}'
+
+
+#
+# libmxml.a
+#
+
+libmxml.a:	$(LIBOBJS)
+	echo Creating $@...
+	$(RM) $@
+	$(AR) $(ARFLAGS) $@ $(LIBOBJS)
+	$(RANLIB) $@
+
+$(LIBOBJS):	mxml.h
+mxml-entity.o mxml-file.o mxml-private.o: mxml-private.h
+
+
+#
+# mxml1.dll
+#
+
+mxml1.dll:	$(LIBOBJS)
+	echo Creating $@...
+	$(DSO) $(DSOFLAGS) -o $@ $(LIBOBJS)
+
+
+#
+# libmxml.so.1.6
+#
+
+libmxml.so.1.6:	$(LIBOBJS)
+	echo Creating $@...
+	$(DSO) $(DSOFLAGS) -o libmxml.so.1.6 $(LIBOBJS)
+	$(RM) libmxml.so libmxml.so.1
+	$(LN) libmxml.so.1.6 libmxml.so
+	$(LN) libmxml.so.1.6 libmxml.so.1
+
+
+#
+# libmxml.sl.1
+#
+
+libmxml.sl.1:	$(LIBOBJS)
+	echo Creating $@...
+	$(DSO) $(DSOFLAGS) -o libmxml.sl.1 $(LIBOBJS)
+	$(RM) libmxml.sl
+	$(LN) libmxml.sl.1 libmxml.sl
+
+
+#
+# libmxml.1.dylib
+#
+
+libmxml.1.dylib:	$(LIBOBJS)
+	echo Creating $@...
+	$(DSO) $(DSOFLAGS) -o libmxml.1.dylib \
+		-install_name $(libdir)/libmxml.dylib \
+		-current_version 1.6.0 \
+		-compatibility_version 1.0.0 \
+		$(LIBOBJS)
+	$(RM) libmxml.dylib
+	$(LN) libmxml.1.dylib libmxml.dylib
+
+
+#
+# mxmldoc
+#
+
+mxmldoc:	$(LIBMXML) mxmldoc.o mmd.o 
+	echo Linking $@...
+	$(CC) -L. $(LDFLAGS) -o $@ mxmldoc.o mmd.o  -lmxml $(LIBS)
+
+mxmldoc-static:	libmxml.a mxmldoc.o mmd.o 
+	echo Linking $@...
+	$(CC) $(LDFLAGS) -o $@ mxmldoc.o mmd.o  libmxml.a $(LIBS)
+
+mxmldoc.o:	mxml.h zipc.h mmd.h
+zipc.o:		zipc.h
+mmd.o:		mmd.h
+
+
+#
+# testmxml
+#
+
+testmxml:	libmxml.a testmxml.o
+	echo Linking $@...
+	$(CC) $(LDFLAGS) -o $@ testmxml.o libmxml.a $(LIBS)
+	@echo Testing library...
+	./testmxml test.xml temp1s.xml >temp1.xml
+	./testmxml temp1.xml temp2s.xml >temp2.xml
+	@if cmp temp1.xml temp2.xml; then \
+		echo Stdio file test passed!; \
+		$(RM) temp2.xml temp2s.xml; \
+	else \
+		echo Stdio file test failed!; \
+	fi
+	@if cmp temp1.xml temp1s.xml; then \
+		echo String test passed!; \
+		$(RM) temp1.xml temp1s.xml; \
+	else \
+		echo String test failed!; \
+	fi
+	@if cmp test.xml test.xmlfd; then \
+		echo File descriptor test passed!; \
+		$(RM) test.xmlfd; \
+	else \
+		echo File descriptor test failed!; \
+	fi
+
+testmxml-vg:	$(LIBOBJS) testmxml.o
+	echo Linking $@...
+	$(CC) $(LDFLAGS) -o $@ testmxml.o $(LIBOBJS) $(LIBS)
+
+testmxml.o:	mxml.h
+
+
+#
+# mxml.xml
+#
+
+mxml.xml:	mxmldoc-static mxml.h $(PUBLIBOBJS:.o=.c) \
+		doc/body.man doc/body.md \
+		doc/docset.css doc/docset.header \
+		doc/reference.header
+	echo Generating API documentation...
+	$(RM) mxml.xml
+	./mxmldoc-static --header doc/reference.header \
+		--docversion 2.11 --author "Michael R Sweet" \
+		--copyright "Copyright 2003-2017, All Rights Reserved." \
+		--title "Mini-XML API Reference" \
+		mxml.xml mxml.h $(PUBLIBOBJS:.o=.c) >doc/reference.html
+	./mxmldoc-static --man mxml --title "Mini-XML API" \
+		--body doc/body.man --footer doc/footer.man \
+		mxml.xml >doc/mxml.man
+	if test "x`uname`" = xDarwin; then \
+		./mxmldoc-static --docset org.msweet.mxml.docset \
+			--docversion 2.11 --feedname org.msweet.mxml \
+			--feedurl https://michaelrsweet.github.io/mxml/org.msweet.mxml.atom \
+			--header doc/docset.header --body doc/body.md \
+			--css doc/docset.css \
+			mxml.xml || exit 1; \
+		$(RM) org.msweet.mxml.atom; \
+		xcrun docsetutil package --output org.msweet.mxml.xar \
+			--atom org.msweet.mxml.atom \
+			--download-url https://michaelrsweet.github.io/mxml/org.msweet.mxml.xar \
+			org.msweet.mxml.docset || exit 1; \
+	fi
+
+
+#
+# mxml.epub
+#
+
+mxml.epub:	mxml.xml doc/body.md doc/mxml-cover.png
+	echo Generating EPUB API documentation...
+	./mxmldoc-static --body doc/body.md \
+		--coverimage doc/mxml-cover.png \
+		--epub mxml.epub mxml.xml
+
+
+#
+# Use Valgrind (http://valgrind.org) to check for problems in mxmldoc.
+#
+
+valgrind:	mxmldoc-static
+	echo Doing dynamic code analysis using Valgrind...
+	$(RM) valgrind.xml
+	valgrind --tool=memcheck --leak-check=yes ./mxmldoc-static \
+		valgrind.xml mxml.h $(PUBLIBOBJS:.o=.c) \
+		>valgrind.html 2>valgrind.out
+
+
+#
+# All object files depend on the makefile and config header...
+#
+
+$(OBJS):	Makefile config.h
