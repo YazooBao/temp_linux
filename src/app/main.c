@@ -18,10 +18,10 @@ int main(int argc, char **argv){
     svn_ver = SVN_VERSION;
     elog_config();
 
-    // elog_i("info", PRJ_NAME);
-    // elog_i("info", BUILD_TIME);
-    // elog_i("info", BUILD_VERSION);
-    // elog_i("info","SVN version : %ld", SVN_VERSION);
+    elog_i("info", PRJ_NAME);
+    elog_i("info", BUILD_TIME);
+    elog_i("info", BUILD_VERSION);
+    elog_i("info","SVN version : %ld", SVN_VERSION);
 
     pr_config("./call.xml");
     // pr_config("./bao.xml");
@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 // ev_task_start();
     phone_sock_init();
     // pecu_sock_init();
-event_tcp_server_start();
+/*event_tcp_server_start();*/
     qp_task_start();
 
     for(;;){

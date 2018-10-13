@@ -63,8 +63,8 @@ static void on_ev_task(void){
     }
 
     bzero(&addr, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(PORT);
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(PORT);
     addr.sin_addr.s_addr = INADDR_ANY;
 
     if(bind(sd, (struct sockaddr*)&addr, sizeof(addr)) != 0){

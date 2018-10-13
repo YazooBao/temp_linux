@@ -15,12 +15,25 @@
 #endif
 
 /*includes-------------------------------------------------------------------------*/
+#include "liblist.h"
 /*typedef--------------------------------------------------------------------------*/
+typedef struct tcp_tag{
+    list_t *c_list_header;//表头
+    int port;
+    void (*call_back)(struct tcp_tag *p);
+}tcp_t;
+
+typedef struct{
+    struct bufferevent *bev;
+    struct evbuffer *buf;
+    char ip[16];
+    int port;
+}client_t;
 /*define---------------------------------------------------------------------------*/
 /*macro----------------------------------------------------------------------------*/
 /*variables------------------------------------------------------------------------*/
 /*function prototype---------------------------------------------------------------*/
-void event_tcp_server_start(void);
+void event_tcp_server_start(tcp_t *p);
 /*variables------------------------------------------------------------------------*/
 
 #ifdef __cpluscplus
@@ -28,3 +41,5 @@ void event_tcp_server_start(void);
 #endif
 
 #endif
+
+

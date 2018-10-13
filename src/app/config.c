@@ -135,28 +135,28 @@ void pr_config(char *path)
             return;
         }
         p_attr.cc1.cab = atoi(mxmlElementGetAttr(elm, "cab"));
-        p_attr.cc1.id = atoi(mxmlElementGetAttr(elm, "id"));
+        p_attr.cc1.id  = atoi(mxmlElementGetAttr(elm, "id"));
 
         if((elm = mxmlFindElement(call, xml, "cc2", NULL, NULL, MXML_DESCEND)) == NULL){
             elog_w("warning","cant find element cc2");
             return;
         }
         p_attr.cc2.cab = atoi(mxmlElementGetAttr(elm, "cab"));
-        p_attr.cc2.id = atoi(mxmlElementGetAttr(elm, "id"));
+        p_attr.cc2.id  = atoi(mxmlElementGetAttr(elm, "id"));
 
         if((elm = mxmlFindElement(call, xml, "master", NULL, NULL, MXML_DESCEND)) == NULL){
             elog_w("warning","cant find element master");
             return;
         }
         p_attr.master.cab = atoi(mxmlElementGetAttr(elm, "cab"));
-        p_attr.master.id = atoi(mxmlElementGetAttr(elm, "id"));
+        p_attr.master.id  = atoi(mxmlElementGetAttr(elm, "id"));
 
         if((elm = mxmlFindElement(call, xml, "machinist", NULL, NULL, MXML_DESCEND)) == NULL){
             elog_w("warning","cant find element machinist");
             return;
         }
         p_attr.machinist.cab = atoi(mxmlElementGetAttr(elm, "cab"));
-        p_attr.machinist.id = atoi(mxmlElementGetAttr(elm, "id"));
+        p_attr.machinist.id  = atoi(mxmlElementGetAttr(elm, "id"));
 
         if((elm = mxmlFindElement(call, xml, "alarm_report", NULL, NULL, MXML_DESCEND)) == NULL){
             elog_w("warning","cant find element alarm_report");
