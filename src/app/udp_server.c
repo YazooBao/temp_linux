@@ -144,6 +144,6 @@ static int creat_udp_sv(void *p)
     if(err!=0){
         elog_i("info", "creat udp server thread error!err=%d",err);
     }
-    elog_i("info", "udp server thread success!thread id = %lu\n", thread_id);
+    elog_i("info", "udp server thread success!\n");
     return err;
 }

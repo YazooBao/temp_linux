@@ -77,10 +77,14 @@ APP_SRC := \
 	tcp_client.c \
 	event_tcp_server.c \
 	udp_server.c \
+<<<<<<< HEAD
 	config.c \
 	call_sock.c \
 	qp_task.c
 #	event_tcp_server.c
+=======
+	config.c
+>>>>>>> master
 
 	# ev_task.c
 	# ev_tcp_server.c 

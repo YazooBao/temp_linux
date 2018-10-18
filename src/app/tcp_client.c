@@ -253,7 +253,7 @@ static int creat_tcp_client(void *p)
     if(err!=0){
         elog_i("info", "creat tcp client thread error!err=%d",err);
     }
-    elog_i("info", "tcp client thread success!thread id = %lu\n", thread_id);
+    elog_i("info", "tcp client thread success!\n");
     return err;
 }
 
